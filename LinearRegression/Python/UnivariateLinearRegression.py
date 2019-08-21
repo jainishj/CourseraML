@@ -18,7 +18,7 @@ def gradient_descent(theta, population, profit, alpha):
 
 dataset = pd.read_csv('data/UniVarData.txt', header = None)
 
-population =  dataset.iloc[:,0].values
+population = dataset.iloc[:,0].values
 profit = dataset.iloc[:,1].values
 
 plt.figure(0)
