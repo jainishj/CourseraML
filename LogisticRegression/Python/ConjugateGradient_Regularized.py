@@ -20,13 +20,15 @@ def grad(theta, *args):
     return gg.flatten()
 
 dataset = pd.read_csv('data/ex2data3.txt', header = 1)
+dataset2 = pd.read_csv('data/ex2data2.txt', header = None)
+input_ = dataset.to_numpy()
 
-X = dataset.to_numpy()
+training_size = input_.shape[0]
+feature_set = np.hstack((np.ones([training_size,1]), input_))
+output_ = dataset2.iloc[2:,-1].values.reshape(-1,1)
 
-training_size = X.shape[0]
-feature_set = np.hstack((np.ones([training_size,1]), X))
-theta = np.asarray((0,0,0)).reshape(-1,1) # Initial theta.
+theta = np.zeros(29).reshape(-1,1) # Initial theta.
 lambda_=1
-res1 = optimize.fmin_cg(cost, theta, fprime=grad, args=(feature_set, y, lambda_))
+res1 = optimize.fmin_cg(cost, theta, fprime=grad, args=(feature_set, output_, lambda_))
 
-y_pred = X@res1 == y
+y_pred = feature_set@res1.reshape(-1,1) == output_
