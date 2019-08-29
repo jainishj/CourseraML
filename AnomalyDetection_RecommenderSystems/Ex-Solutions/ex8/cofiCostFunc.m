@@ -31,7 +31,8 @@ Theta_grad = zeros(size(Theta));
 %        Y - num_movies x num_users matrix of user ratings of movies
 %        R - num_movies x num_users matrix, where R(i, j) = 1 if the 
 %            i-th movie was rated by the j-th user
-%
+
+J = sum(sum(((X*Theta' - Y).*R).^2))/2 + lambda*(sum(X(:).^2))/2 + lambda*(sum(Theta(:).^2))/2;
 % You should set the following variables correctly:
 %
 %        X_grad - num_movies x num_features matrix, containing the 
@@ -40,20 +41,8 @@ Theta_grad = zeros(size(Theta));
 %                     partial derivatives w.r.t. to each element of Theta
 %
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+X_grad =((X*Theta' - Y).*R)*Theta + lambda*X;
+Theta_grad = (X'*((X*Theta' - Y).*R))' + lambda*Theta;
 
 % =============================================================
 
