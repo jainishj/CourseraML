@@ -1,11 +1,14 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import metrics
+import matplotlib.pyplot as plt
 from datetime import datetime
+from sklearn import metrics
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
 
 #Cost function
-def costFunc(X, y, theta):
+def costFunc(X, y, theta, reg = 0.0):
     datasize = len(X)
     
     #Append bias vector of 1s
@@ -15,11 +18,15 @@ def costFunc(X, y, theta):
         predicted_cost = 0
         for j in range(len(theta)):
             predicted_cost += X[i,j]*theta[j] 
-        cost += (predicted_cost - y[i])**2
-    return cost/(2*datasize)
+        cost += -(y[i]*np.log(sigmoid(predicted_cost)) + (1-y[i])*np.log(1-sigmoid(predicted_cost)))
+    
+    reg_term = 0
+    for i in range(1,len(theta)):
+        reg_term += theta[i]**2
+    return cost/datasize + reg*reg_term/(2*datasize)
 
 #Gradient Descent
-def gradientDescent(X, y, theta, alpha):
+def gradientDescent(X, y, theta, alpha, reg = 0.0):
     datasize = len(X)
     
     #Append bias vector of 1s
@@ -31,52 +38,40 @@ def gradientDescent(X, y, theta, alpha):
     for j in range(datasize):
         predicted_cost = 0
         for k in range(len(theta)):
-            predicted_cost += X[j,k]*theta[k] 
-        derivative[0] += (predicted_cost - y[j])*X[j,0]
-        derivative[1] += (predicted_cost - y[j])*X[j,1]
-        derivative[2] += (predicted_cost - y[j])*X[j,2]
+            predicted_cost += X[j,k]*theta[k]
+        
+        derivative[0] += (sigmoid(predicted_cost) - y[j])*X[j,k]
+        for k in range(1, len(theta)):
+            derivative[k] += (sigmoid(predicted_cost) - y[j])*X[j,k] + reg*theta[k]/datasize
             
     for i in range(len(theta)):
         theta[i] = theta[i] - derivative[i]*alpha/datasize
 
     return theta
 
-#Read data
-df = pd.read_csv('data/HousingPrice.csv', names = ['Size', 'Bedrooms', 'Price'])
+df = pd.read_csv('data/Microchip_Transformed.txt')
 
-#Extract features
 features = df[df.columns[0:-1]]
-
-#Extract Target
 target = df[df.columns[-1]]
-target_name = target.name
 
-for i in range(len(features.columns)):
-    col_name = features.columns[i]
-    df.plot(kind = 'scatter', x = col_name, y = target_name)
-    plt.title('{} vs {}'.format(col_name, target_name))
-    plt.show()
-
-#Feature Normalization
-features_norm = (features - features.mean())/features.std()
-  
 #Cost at theta (0,0,0)
-print('Cost at theta {}: {}'.format([0,0,0], costFunc(features_norm, target, [0,0,0])))
+print('Cost at theta {}: {}'.format([0,0,0], costFunc(features, target, [0,0,0])))
+
 
 startTime = datetime.now()
 
 theta = np.array([0.0]*(len(features.columns)+1))
 ##theta = np.array([-3.63029144, 1.16636235])
 cost = []
-cost.append(costFunc(features_norm, target, theta))
+cost.append(costFunc(features, target, theta))
 prev_cost = 0
-
+lambda_ = 1
 #Gradient Descent over multiple steps
-#while(abs(cost[-1]!=prev_cost) > 0.00001):
-for i in range(400):
+#while(abs(cost[-1]-prev_cost) > 0.00000):
+for i in range(1000):
     prev_cost = cost[-1]
-    theta = gradientDescent(features_norm, target, theta, alpha = 0.01)
-    cost.append(costFunc(features_norm, target, theta))
+    theta = gradientDescent(features, target, theta, alpha = 0.1, reg = lambda_)
+    cost.append(costFunc(features, target, theta, reg = lambda_))
 
 print('Time taken: {}'.format( datetime.now() - startTime))
 
@@ -90,8 +85,12 @@ predicted_target = []
 for i in range(len(features)):
     target_ = theta[0]
     for j in range(len(theta)-1):
-        target_ += features_norm.iloc[i][j]*theta[j+1]
-    predicted_target.append(target_)
+        target_ += features.iloc[i][j]*theta[j+1]
+    predicted_target.append(round(sigmoid(target_)))
     
 #R2 score
 print('R2_score:{}'.format(metrics.r2_score(target, predicted_target)))
+
+cf_matrix = metrics.confusion_matrix(target, predicted_target)
+
+print('F1 score:{}'.format(metrics.f1_score(target, predicted_target)))
