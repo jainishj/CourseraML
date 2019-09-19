@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
 
-
 def cost(theta, *args):
     X, y, lambda_ = args
     datasize = len(X)
