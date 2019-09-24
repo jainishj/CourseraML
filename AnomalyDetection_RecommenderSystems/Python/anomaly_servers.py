@@ -10,7 +10,10 @@ def guassian_params(X):
     return mean, sigma
 
 def guassian_val(X, mu, sigma):
-    return scipy.stats.norm(mu[0], np.sqrt(sigma[0])).pdf(X[:,0]) * scipy.stats.norm(mu[1], np.sqrt(sigma[1])).pdf(X[:,1])
+    pval = np.ones(len(X))
+    for i in range(X.shape[1]):
+        pval = pval * scipy.stats.norm(mu[i], np.sqrt(sigma[i])).pdf(X[:,i])
+    return pval
 
 def bestEpsilon(X, y, mu, sigma):
     pval = guassian_val(X, mu, sigma)
@@ -40,7 +43,6 @@ yval = server_val[:,-1]
 fig, ax = plt.subplots()
 ax.plot(Xval[:,0], Xval[:,1], 'bx')
 
-
 mu, sigma = guassian_params(server_train)
 p_train = guassian_val(server_train, mu, sigma)
 eps, f1score = bestEpsilon(Xval, yval, mu, sigma)
@@ -52,3 +54,22 @@ X_anomalous = Xval[p_val < eps]
 
 ax.plot(X_anomalous[:,0], X_anomalous[:,1], 'rx')
 plt.show()
+
+############################### 2nd Problem ##################
+random_train = pd.read_csv('data/random.csv', header = None).values
+
+random_val = pd.read_csv('data/random_val.csv', header = None).values
+
+mu, sigma = guassian_params(random_train)
+p_train = guassian_val(random_train, mu, sigma)
+
+random_Xval = random_val[:,:-1]
+random_yval = random_val[:,-1]
+eps, f1score = bestEpsilon(random_Xval, random_yval, mu, sigma)
+
+print('EPS Values:{} with f1 score:{}'.format(eps, f1score))
+
+p_val = guassian_val(random_Xval, mu, sigma)
+random_val_anomalous = random_Xval[p_val < eps]
+
+print('Anomalous Dataset:', X_anomalous)
