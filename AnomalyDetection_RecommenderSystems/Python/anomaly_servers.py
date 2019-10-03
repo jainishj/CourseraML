@@ -40,8 +40,8 @@ server_val = pd.read_csv('data/server_val.csv', header = None).values
 
 Xval = server_val[:,:-1]
 yval = server_val[:,-1]
-fig, ax = plt.subplots()
-ax.plot(Xval[:,0], Xval[:,1], 'bx')
+fig, ax1 = plt.subplots()
+ax1.plot(Xval[:,0], Xval[:,1], 'bx')
 
 mu, sigma = guassian_params(server_train)
 p_train = guassian_val(server_train, mu, sigma)
@@ -49,8 +49,7 @@ eps, f1score = bestEpsilon(Xval, yval, mu, sigma)
 
 print('EPS Values:{} with f1 score:{}'.format(eps, f1score))
 
-p_val = guassian_val(Xval, mu, sigma)
-X_anomalous = Xval[p_val < eps]
+X_anomalous = server_train[p_train < eps]
 
 ax.plot(X_anomalous[:,0], X_anomalous[:,1], 'rx')
 plt.show()
@@ -69,7 +68,6 @@ eps, f1score = bestEpsilon(random_Xval, random_yval, mu, sigma)
 
 print('EPS Values:{} with f1 score:{}'.format(eps, f1score))
 
-p_val = guassian_val(random_Xval, mu, sigma)
-random_val_anomalous = random_Xval[p_val < eps]
+random_val_anomalous = random_train[p_train < eps]
 
-print('Anomalous Dataset:', X_anomalous)
+print('Anomalous Dataset:', random_val_anomalous)
